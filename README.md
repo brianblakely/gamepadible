@@ -1,4 +1,12 @@
-Gamepadible
-===========
+Gamepadible (WIP)
+=================
 
-Normalize gamepad &amp; keyboard input on various platforms around the Web's Gamepad API.
+Sugary-sweet syntax for the JavaScript Gamepad API.
+
+Apache Cordova support and keyboard/mouse fallback.
+
+### Supported Platforms
+
+* Web
+* iOS
+* Android

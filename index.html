@@ -1,0 +1,148 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+
+		<title>
+			Gamepadible
+		</title>
+
+		<meta name="description" content="" />
+		<meta name="author" content="Brian Blakely, Analogy Software & Entertainment" />
+
+		<meta
+			name="viewport"
+			content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes"
+		/>
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+
+		<style>
+			html,
+			body,
+			canvas {
+				display: block;
+				margin: 0;
+				padding: 0;
+				height: 100%;
+			}
+		</style>
+	</head>
+	<body>
+		<canvas></canvas>
+
+		<script src="gamepadible.js"></script>
+
+		<script>
+			(function() {
+				"use strict";
+
+				var canvas = document.querySelector('canvas'),
+					ctx = canvas.getContext('2d');
+
+				var width = canvas.width = canvas.offsetWidth * devicePixelRatio,
+					height = canvas.height = canvas.offsetHeight * devicePixelRatio;
+
+				ctx.font = 16*3+'px sans-serif';
+				ctx.textBaseline = 'top';
+				ctx.lineWidth = 5;
+				ctx.strokeStyle = 'black';
+
+				var axisRadius = 70,
+					axisCenterX = 100,
+					axisCenterY = canvas.height / 2,
+					axisPivotL = {
+						x: 0,
+						y: 0
+					},
+					axisPivotR = {
+						x: 0,
+						y: 0
+					};
+
+				var stickL = {
+						x: 0,
+						y: 0
+					},
+					stickR = {
+						x: 0,
+						y: 0
+					};
+
+				var sysPads = navigator.getGamepads(),
+					pads = [];
+				function loop() {
+					sysPads = navigator.getGamepads();
+					pads = [];
+
+					// Normalize Detected Gamepads
+					for(var x = sysPads.length-1, i = 0; x >= 0; --x) {
+						if(
+							sysPads[x]
+							&& (sysPads[x].axes.length || sysPads[x].buttons.length)
+							&& sysPads[x].connected
+						) {
+							pads.push(sysPads[x]);
+						}
+					}
+
+					ctx.clearRect(0,0,width,height);
+
+					if(!pads.length) {
+						requestAnimationFrame(loop);
+						return false;
+					}
+
+					// Connection State
+					pads.forEach(function(el, dex) {
+						ctx.fillText('Gamepad '+(dex+1)+' Connected', 10, dex*16*3+10);
+					});
+
+					// Axes
+					stickL.x = pads[0].axes[0];
+					stickL.y = pads[0].axes[1];
+					stickR.x = pads[0].axes[2];
+					stickR.y = pads[0].axes[3];
+
+					axisPivotL.x = axisRadius*stickL.x;
+					axisPivotL.y = axisRadius*stickL.y;
+					axisPivotR.x = axisRadius*stickR.x;
+					axisPivotR.y = axisRadius*stickR.y;
+
+					ctx.beginPath();
+
+					// Left Axis
+					ctx.arc(axisCenterX, axisCenterY, axisRadius, 0, 2 * Math.PI, false);
+					ctx.moveTo(axisCenterX+axisPivotL.x, axisCenterY+axisPivotL.y);
+					ctx.arc(axisCenterX+axisPivotL.x, axisCenterY+axisPivotL.y, 5, 0, 2 * Math.PI, false);
+
+					// Right Axis
+					ctx.moveTo(axisCenterX+300+axisRadius, axisCenterY);
+					ctx.arc(axisCenterX+300, axisCenterY, axisRadius, 0, 2 * Math.PI, false);
+					ctx.moveTo(axisCenterX+300+axisPivotR.x, axisCenterY+axisPivotR.y);
+					ctx.arc(axisCenterX+300+axisPivotR.x, axisCenterY+axisPivotR.y, 5, 0, 2 * Math.PI, false);
+
+					ctx.closePath();
+					ctx.stroke();
+
+					requestAnimationFrame(loop);
+				}
+				requestAnimationFrame(loop);
+
+				window.addEventListener("gamepadconnected", function(e) {
+					console.log(
+						"Gamepad connected at index %d: %s. %d buttons, %d axes.",
+						e.gamepad.index, e.gamepad.id,
+						e.gamepad.buttons.length, e.gamepad.axes.length
+					);
+				});
+				window.addEventListener("gamepaddisconnected", function(e) {
+					console.log(
+						"Gamepad disconnected from index %d: %s",
+						e.gamepad.index, e.gamepad.id
+					);
+				});
+			})();
+		</script>
+	</body>
+</html>
