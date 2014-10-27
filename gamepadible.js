@@ -133,52 +133,13 @@
 		return Pads[self.index];
 	}
 
-	// Loop that polls for gamepad input.
+	// A per-frame loop that polls for gamepad input.
 
-	// Loop params.
+	// Loop commons.
 	var connPads = {}, // Reported connections.
-		realPads = []; // Real connections.
-
-	// Go through Pads, send them data from poll.
-	var padInfo = {};
-
-	var sendAxesInfo = function(strength, i, axes) {
-			if(Math.abs(strength) <= this.options.deadzone) {
-				return false;
-			}
-
-			switch(i) {
-				case 0:
-					if(strength > 0) {
-						this.leftStick.up.push;
-					}
-					break;
-				default:
-					break;
-			}
-		},
-		sendPadInfo = function(pad, i) {
-			padInfo = realPads[i];
-
-			// Pad no longer exists.
-			if(!padInfo) {
-				if(pad.connected) {
-					pad.connected = false;
-					// ... Lift buttons.
-				}
-
-				return false;
-			}
-
-			if(!pad.connected) {
-				pad.connected = true;
-			}
-
-			// ... Calculate heading.
-			padInfo.axes.forEach(sendAxesInfo, pad);
-		};
-
-	var padCnt = 0;
+		realPads = [], // Real connections.
+		padInfo = {},
+		padCnt = 0;
 
 	var padPoll = function() {
 			if(!Pads.length) {
@@ -204,6 +165,50 @@
 
 			// Poll again at next frame.
 			requestAnimationFrame(padPoll);
+		},
+
+		// Go through Pads, send them data from poll.
+		sendPadInfo = function(pad, i) {
+			padInfo = realPads[i];
+
+			// Pad no longer exists.
+			if(!padInfo) {
+				if(pad.connected) {
+					pad.connected = false;
+					// ... Lift buttons.
+				}
+
+				return false;
+			}
+
+			if(!pad.connected) {
+				pad.connected = true;
+			}
+
+			// ... Calculate heading.
+			padInfo.axes.forEach(sendAxesInfo, pad);
+
+			padInfo.buttons.forEach(sendButtonsInfo, pad);
+		},
+
+		// Parse analog stick data for sending.
+		sendAxesInfo = function(strength, i, axes) {
+			if(Math.abs(strength) <= this.options.deadzone) {
+				return false;
+			}
+
+			switch(i) {
+				case 0:
+					if(strength > 0) {
+						this.leftStick.up.push;
+					}
+					break;
+				default:
+					break;
+			}
+		},
+
+		sendButtonsInfo = function(strength, i, buttons) {
 		};
 })();
 
