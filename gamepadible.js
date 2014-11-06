@@ -24,21 +24,23 @@
 
 		// Pad events.
 		self.connection = {};
-		self.leftStick = {
-			move: {},
-			up: {},
-			right: {},
-			down: {},
-			left: {},
-			button: {}
-		};
-		self.rightStick = {
-			move: {},
-			up: {},
-			right: {},
-			down: {},
-			left: {},
-			button: {}
+		self.stick = {
+			left: {
+				move: {},
+				up: {},
+				right: {},
+				down: {},
+				left: {},
+				button: {}
+			},
+			right: {
+				move: {},
+				up: {},
+				right: {},
+				down: {},
+				left: {},
+				button: {}
+			}
 		};
 		self.dpad = {
 			up: {},
@@ -52,15 +54,18 @@
 			south: {},
 			west: {},
 			start: {},
-			select: {}
+			select: {},
+			guide: {}
 		};
-		self.leftShoulder = {
-			front: {},
-			back: {}
-		};
-		self.rightShoulder = {
-			front: {},
-			back: {}
+		self.shoulder = {
+			left: {
+				front: {},
+				back: {}
+			},
+			right: {
+				front: {},
+				back: {}
+			}
 		};
 
 		self.remove = function() {
@@ -77,13 +82,17 @@
 		return Pads[self.index];
 	};
 
+	// Input mappings.
+	var padMapping = {
+			standard: {
+
+			}
+		};
+
+	// Event objects.
 	function PadConnectionEvent() {
 
 	}
-
-	var axisInfo = function() {
-
-		};
 
 	function PadAxisEvent(axes, type) {
 		var self = this;
@@ -100,9 +109,10 @@
 	// Loop commons.
 	var connPads = {}, // Reported connections.
 		realPads = [], // Real connections.
-		padInfo = {},
-		padCnt = 0;
+		padInfo = {}, // Direct data from API.
+		padCnt = 0; // Reported connection count.
 
+	// Main loop function.
 	var padPoll = function() {
 			if(!Pads.length) {
 				return false;
@@ -154,10 +164,12 @@
 		},
 
 		// Parse analog stick data for sending.
-		parseAxes = function(strength, i, axes) {
+		parseInput = function(strength, i, group) {
 			if(Math.abs(strength) <= this.options.deadzone) {
 				return false;
 			}
+
+
 
 			switch(i) {
 				case 0:
@@ -191,43 +203,6 @@
 				default:
 					break;
 			}
-		},
-
-		parseButtons = function(strength, i, buttons) {
-			if(Math.abs(strength) <= this.options.deadzone) {
-				return false;
-			}
-
-			case 0:
-				if(strength < 0 && this.leftStick.up.push) {
-					this.leftStick.up.push.call(this, new PadAxisEvent(axes));
-				} else if(strength > 0 && this.leftStick.down.push) {
-					this.leftStick.down.push.call(this, new PadAxisEvent(axes));
-				}
-				break;
-			case 1:
-				if(strength < 0 && this.leftStick.left.push) {
-					this.leftStick.left.push.call(this, new PadAxisEvent(axes));
-				} else if(strength > 0 && this.leftStick.right.push) {
-					this.leftStick.right.push.call(this, new PadAxisEvent(axes));
-				}
-				break;
-			case 2:
-				if(strength < 0 && this.rightStick.up.push) {
-					this.rightStick.up.push.call(this, new PadAxisEvent(axes));
-				} else if(strength > 0 && this.rightStick.down.push) {
-					this.rightStick.down.push.call(this, new PadAxisEvent(axes));
-				}
-				break;
-			case 3:
-				if(strength < 0 && this.rightStick.left.push) {
-					this.rightStick.left.push.call(this, new PadAxisEvent(axes));
-				} else if(strength > 0 && this.rightStick.right.push) {
-					this.rightStick.right.push.call(this, new PadAxisEvent(axes));
-				}
-				break;
-			default:
-				break;
 		};
 })();
 
