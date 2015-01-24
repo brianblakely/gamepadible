@@ -23,6 +23,8 @@
 		self.index = Pads.length;
 		self.connected = false;
 
+		self.raw = null;
+
 		self.events = {};
 		self.on = function(event, callback) {
 			self.events[event] = callback;
@@ -34,11 +36,19 @@
 				delete self.events[event];
 			}
 		};
+		self.state = '';
 
 		self.type = options.type;
-		self.mapping = padMapping[options.type];
-		self.remap = function(oldInput, newInput) {
+		self.mapping = {};
+		for(var prop in padMapping[self.type]) {
+			self.mapping[prop] = padMapping[self.type][prop];
+		}
+		self.remap = function(oldEvent, newEvent, swapThem) {
+			self.mapping[oldEvent] = padMapping[self.type][newEvent];
 
+			if(swapThem) {
+				self.mapping[newEvent] = padMapping[self.type][oldEvent];
+			}
 		};
 
 		self.remove = function() {
@@ -74,20 +84,25 @@
 		})();
 
 	// Input mappings.
+	var v = 0,
+		h = 0,
+		strength = 0,
+		heading = 0;
+
 	var padMapping = {
 			traditional: {
 				'left.stick.move': {
-					'standard': function(pad, options) {
-						var v = pad.axes[1],
-							h = pad.axes[0],
-							strength =
-								Math.sqrt(
-									Math.pow(v,2)
-									+ Math.pow(h,2)
-								),
-							heading = 0;
+					'standard': function(pad) {
+						v = pad.raw.axes[1];
+						h = pad.raw.axes[0];
+						strength =
+							Math.sqrt(
+								Math.pow(v,2)
+								+ Math.pow(h,2)
+							);
+						heading = 0;
 
-						if(strength > options.deadzone) {
+						if(strength > pad.options.deadzone) {
 							heading =
 								Math.atan2(v,h) // Gives rotation between Pi and -Pi.
 								* (180/Math.PI) // Convert to degrees.
@@ -104,89 +119,89 @@
 						}
 						return false;
 					},
-					'ios': function(pad, options) {
+					'ios': function(pad) {
 						return false;
 					},
-					'android': function(pad, options) {
+					'android': function(pad) {
 						return false;
 					}
 				},
 				'left.stick.up': {
-					'standard': function(pad, options) {
-						if(pad.axes[1] < -options.deadzone) {
+					'standard': function(pad) {
+						if(pad.raw.axes[1] < -pad.options.deadzone) {
 							return {
-								strength: Math.abs(pad.axes[1])
+								strength: Math.abs(pad.raw.axes[1])
 							};
 						}
 						return false;
 					},
-					'ios': function(pad, options) {
+					'ios': function(pad) {
 						return false;
 					},
-					'android': function(pad, options) {
+					'android': function(pad) {
 						return false;
 					}
 				},
 				'left.stick.down': {
-					'standard': function(pad, options) {
-						if(pad.axes[1] > options.deadzone) {
+					'standard': function(pad) {
+						if(pad.raw.axes[1] > pad.options.deadzone) {
 							return {
-								strength: Math.abs(pad.axes[1])
+								strength: Math.abs(pad.raw.axes[1])
 							};
 						}
 						return false;
 					},
-					'ios': function(pad, options) {
+					'ios': function(pad) {
 						return false;
 					},
-					'android': function(pad, options) {
+					'android': function(pad) {
 						return false;
 					}
 				},
 				'left.stick.left': {
-					'standard': function(pad, options) {
-						if(pad.axes[0] < -options.deadzone) {
+					'standard': function(pad) {
+						if(pad.raw.axes[0] < -pad.options.deadzone) {
 							return {
-								strength: Math.abs(pad.axes[0])
+								strength: Math.abs(pad.raw.axes[0])
 							};
 						}
 						return false;
 					},
-					'ios': function(pad, options) {
+					'ios': function(pad) {
 						return false;
 					},
-					'android': function(pad, options) {
+					'android': function(pad) {
 						return false;
 					}
 				},
 				'left.stick.right': {
-					'standard': function(pad, options) {
-						if(pad.axes[0] > options.deadzone) {
+					'standard': function(pad) {
+						if(pad.raw.axes[0] > pad.options.deadzone) {
 							return {
-								strength: Math.abs(pad.axes[0])
+								strength: Math.abs(pad.raw.axes[0])
 							};
 						}
 						return false;
 					},
-					'ios': function(pad, options) {
+					'ios': function(pad) {
 						return false;
 					},
-					'android': function(pad, options) {
+					'android': function(pad) {
 						return false;
 					}
 				},
 				'right.stick.move': {
-					'standard': function(pad, options) {
-						var v = pad.axes[3],
-							h = pad.axes[2],
-							strength =
-								Math.sqrt(
-									Math.pow(v,2)
-									+ Math.pow(h,2)
-								),
-							heading = 0;
+					'standard': function(pad) {
+						v = pad.raw.axes[3];
+						h = pad.raw.axes[2];
+						strength =
+							Math.sqrt(
+								Math.pow(v,2)
+								+ Math.pow(h,2)
+							);
+						heading = 0;
 
-						if(strength > options.deadzone) {
+						if(strength > pad.options.deadzone) {
 							heading =
 								Math.atan2(v,h) // Gives rotation between Pi and -Pi.
 								* (180/Math.PI) // Convert to degrees.
@@ -203,309 +218,309 @@
 						}
 						return false;
 					},
-					'ios': function(pad, options) {
+					'ios': function(pad) {
 						return false;
 					},
-					'android': function(pad, options) {
+					'android': function(pad) {
 						return false;
 					}
 				},
 				'right.stick.up': {
-					'standard': function(pad, options) {
-						if(pad.axes[3] < -options.deadzone) {
+					'standard': function(pad) {
+						if(pad.raw.axes[3] < -pad.options.deadzone) {
 							return {
-								strength: Math.abs(pad.axes[3])
+								strength: Math.abs(pad.raw.axes[3])
 							};
 						}
 						return false;
 					},
-					'ios': function(pad, options) {
+					'ios': function(pad) {
 						return false;
 					},
-					'android': function(pad, options) {
+					'android': function(pad) {
 						return false;
 					}
 				},
 				'right.stick.down': {
-					'standard': function(pad, options) {
-						if(pad.axes[3] > options.deadzone) {
+					'standard': function(pad) {
+						if(pad.raw.axes[3] > pad.options.deadzone) {
 							return {
-								strength: Math.abs(pad.axes[3])
+								strength: Math.abs(pad.raw.axes[3])
 							};
 						}
 						return false;
 					},
-					'ios': function(pad, options) {
+					'ios': function(pad) {
 						return false;
 					},
-					'android': function(pad, options) {
+					'android': function(pad) {
 						return false;
 					}
 				},
 				'right.stick.left': {
-					'standard': function(pad, options) {
-						if(pad.axes[2] < -options.deadzone) {
+					'standard': function(pad) {
+						if(pad.raw.axes[2] < -pad.options.deadzone) {
 							return {
-								strength: Math.abs(pad.axes[2])
+								strength: Math.abs(pad.raw.axes[2])
 							};
 						}
 						return false;
 					},
-					'ios': function(pad, options) {
+					'ios': function(pad) {
 						return false;
 					},
-					'android': function(pad, options) {
+					'android': function(pad) {
 						return false;
 					}
 				},
 				'right.stick.right': {
-					'standard': function(pad, options) {
-						if(pad.axes[2] > options.deadzone) {
+					'standard': function(pad) {
+						if(pad.raw.axes[2] > pad.options.deadzone) {
 							return {
-								strength: Math.abs(pad.axes[2])
+								strength: Math.abs(pad.raw.axes[2])
 							};
 						}
 						return false;
 					},
-					'ios': function(pad, options) {
+					'ios': function(pad) {
 						return false;
 					},
-					'android': function(pad, options) {
+					'android': function(pad) {
 						return false;
 					}
 				},
 				'dpad.up': {
-					'standard': function(pad, options) {
-						if(pad.buttons[12].value > options.deadzone) {
+					'standard': function(pad) {
+						if(pad.raw.buttons[12].value > pad.options.deadzone) {
 							return {
-								strength: pad.buttons[12].value
+								strength: pad.raw.buttons[12].value
 							};
 						}
 						return false;
 					},
-					'ios': function(pad, options) {
+					'ios': function(pad) {
 						return false;
 					},
-					'android': function(pad, options) {
+					'android': function(pad) {
 						return false;
 					}
 				},
 				'dpad.down': {
-					'standard': function(pad, options) {
-						if(pad.buttons[13].value > options.deadzone) {
+					'standard': function(pad) {
+						if(pad.raw.buttons[13].value > pad.options.deadzone) {
 							return {
-								strength: pad.buttons[13].value
+								strength: pad.raw.buttons[13].value
 							};
 						}
 						return false;
 					},
-					'ios': function(pad, options) {
+					'ios': function(pad) {
 						return false;
 					},
-					'android': function(pad, options) {
+					'android': function(pad) {
 						return false;
 					}
 				},
 				'dpad.left': {
-					'standard': function(pad, options) {
-						if(pad.buttons[14].value > options.deadzone) {
+					'standard': function(pad) {
+						if(pad.raw.buttons[14].value > pad.options.deadzone) {
 							return {
-								strength: pad.buttons[14].value
+								strength: pad.raw.buttons[14].value
 							};
 						}
 						return false;
 					},
-					'ios': function(pad, options) {
+					'ios': function(pad) {
 						return false;
 					},
-					'android': function(pad, options) {
+					'android': function(pad) {
 						return false;
 					}
 				},
 				'dpad.right': {
-					'standard': function(pad, options) {
-						if(pad.buttons[15].value > options.deadzone) {
+					'standard': function(pad) {
+						if(pad.raw.buttons[15].value > pad.options.deadzone) {
 							return {
-								strength: pad.buttons[15].value
+								strength: pad.raw.buttons[15].value
 							};
 						}
 						return false;
 					},
-					'ios': function(pad, options) {
+					'ios': function(pad) {
 						return false;
 					},
-					'android': function(pad, options) {
+					'android': function(pad) {
 						return false;
 					}
 				},
 				'button.north': {
-					'standard': function(pad, options) {
-						if(pad.buttons[3].value > options.deadzone) {
+					'standard': function(pad) {
+						if(pad.raw.buttons[3].value > pad.options.deadzone) {
 							return {
-								strength: pad.buttons[3].value
+								strength: pad.raw.buttons[3].value
 							};
 						}
 						return false;
 					},
-					'ios': function(pad, options) {
+					'ios': function(pad) {
 						return false;
 					},
-					'android': function(pad, options) {
+					'android': function(pad) {
 						return false;
 					}
 				},
 				'button.south': {
-					'standard': function(pad, options) {
-						if(pad.buttons[0].value > options.deadzone) {
+					'standard': function(pad) {
+						if(pad.raw.buttons[0].value > pad.options.deadzone) {
 							return {
-								strength: pad.buttons[0].value
+								strength: pad.raw.buttons[0].value
 							};
 						}
 						return false;
 					},
-					'ios': function(pad, options) {
+					'ios': function(pad) {
 						return false;
 					},
-					'android': function(pad, options) {
+					'android': function(pad) {
 						return false;
 					}
 				},
 				'button.west': {
-					'standard': function(pad, options) {
-						if(pad.buttons[2].value > options.deadzone) {
+					'standard': function(pad) {
+						if(pad.raw.buttons[2].value > pad.options.deadzone) {
 							return {
-								strength: pad.buttons[2].value
+								strength: pad.raw.buttons[2].value
 							};
 						}
 						return false;
 					},
-					'ios': function(pad, options) {
+					'ios': function(pad) {
 						return false;
 					},
-					'android': function(pad, options) {
+					'android': function(pad) {
 						return false;
 					}
 				},
 				'button.east': {
-					'standard': function(pad, options) {
-						if(pad.buttons[1].value > options.deadzone) {
+					'standard': function(pad) {
+						if(pad.raw.buttons[1].value > pad.options.deadzone) {
 							return {
-								strength: pad.buttons[1].value
+								strength: pad.raw.buttons[1].value
 							};
 						}
 						return false;
 					},
-					'ios': function(pad, options) {
+					'ios': function(pad) {
 						return false;
 					},
-					'android': function(pad, options) {
+					'android': function(pad) {
 						return false;
 					}
 				},
 				'button.start': {
-					'standard': function(pad, options) {
-						if(pad.buttons[9].value > options.deadzone) {
+					'standard': function(pad) {
+						if(pad.raw.buttons[9].value > pad.options.deadzone) {
 							return {
-								strength: pad.buttons[9].value
+								strength: pad.raw.buttons[9].value
 							};
 						}
 						return false;
 					},
-					'ios': function(pad, options) {
+					'ios': function(pad) {
 						return false;
 					},
-					'android': function(pad, options) {
+					'android': function(pad) {
 						return false;
 					}
 				},
 				'button.select': {
-					'standard': function(pad, options) {
-						if(pad.buttons[8].value > options.deadzone) {
+					'standard': function(pad) {
+						if(pad.raw.buttons[8].value > pad.options.deadzone) {
 							return {
-								strength: pad.buttons[8].value
+								strength: pad.raw.buttons[8].value
 							};
 						}
 						return false;
 					},
-					'ios': function(pad, options) {
+					'ios': function(pad) {
 						return false;
 					},
-					'android': function(pad, options) {
+					'android': function(pad) {
 						return false;
 					}
 				},
 				'button.guide': {
-					'standard': function(pad, options) {
+					'standard': function(pad) {
 						return false;
 					},
-					'ios': function(pad, options) {
+					'ios': function(pad) {
 						return false;
 					},
-					'android': function(pad, options) {
+					'android': function(pad) {
 						return false;
 					}
 				},
 				'left.shoulder.front': {
-					'standard': function(pad, options) {
-						if(pad.buttons[4].value > options.deadzone) {
+					'standard': function(pad) {
+						if(pad.raw.buttons[4].value > pad.options.deadzone) {
 							return {
-								strength: pad.buttons[4].value
+								strength: pad.raw.buttons[4].value
 							};
 						}
 						return false;
 					},
-					'ios': function(pad, options) {
+					'ios': function(pad) {
 						return false;
 					},
-					'android': function(pad, options) {
+					'android': function(pad) {
 						return false;
 					}
 				},
 				'left.shoulder.back': {
-					'standard': function(pad, options) {
-						if(pad.buttons[6].value > options.deadzone) {
+					'standard': function(pad) {
+						if(pad.raw.buttons[6].value > pad.options.deadzone) {
 							return {
-								strength: pad.buttons[6].value
+								strength: pad.raw.buttons[6].value
 							};
 						}
 						return false;
 					},
-					'ios': function(pad, options) {
+					'ios': function(pad) {
 						return false;
 					},
-					'android': function(pad, options) {
+					'android': function(pad) {
 						return false;
 					}
 				},
 				'right.shoulder.front': {
-					'standard': function(pad, options) {
-						if(pad.buttons[5].value > options.deadzone) {
+					'standard': function(pad) {
+						if(pad.raw.buttons[5].value > pad.options.deadzone) {
 							return {
-								strength: pad.buttons[5].value
+								strength: pad.raw.buttons[5].value
 							};
 						}
 						return false;
 					},
-					'ios': function(pad, options) {
+					'ios': function(pad) {
 						return false;
 					},
-					'android': function(pad, options) {
+					'android': function(pad) {
 						return false;
 					}
 				},
 				'right.shoulder.back': {
-					'standard': function(pad, options) {
-						if(pad.buttons[7].value > options.deadzone) {
+					'standard': function(pad) {
+						if(pad.raw.buttons[7].value > pad.options.deadzone) {
 							return {
-								strength: pad.buttons[7].value
+								strength: pad.raw.buttons[7].value
 							};
 						}
 						return false;
 					},
-					'ios': function(pad, options) {
+					'ios': function(pad) {
 						return false;
 					},
-					'android': function(pad, options) {
+					'android': function(pad) {
 						return false;
 					}
 				}
@@ -547,7 +562,7 @@
 				if(
 					connPads[padCnt] !== undefined
 					&& (
-						connPads[padCnt].axes.length
+						connPads[padCnt].axes.length === 4
 						|| connPads[padCnt].buttons.length
 					)
 				) {
@@ -555,19 +570,19 @@
 				}
 			}
 
-			// Send data from poll.
-			Pads.forEach(sendPadInfo);
+			// Test data from poll.
+			Pads.forEach(testPadEvents);
 
 			// Poll again at next frame.
 			requestAnimationFrame(padPoll);
 		},
 
-		// Go through Pads, send them data from poll.
-		sendPadInfo = function(pad, i) {
-			padInfo = realPads[i];
+		// Go through Pads, test for and possibly fire subscribed events.
+		testPadEvents = function(pad, i) {
+			pad.raw = realPads[i] || null;
 
 			// Pad no longer exists.
-			if(!padInfo) {
+			if(!pad.raw) {
 				if(pad.connected) {
 					pad.connected = false;
 					// ... Lift buttons.
@@ -582,7 +597,7 @@
 
 			// Test each subscribed event to see if it fired.
 			for(padEvt in pad.events) {
-				evtRslt = padMapping[pad.mapping][padEvt][supports](padInfo, pad.options);
+				evtRslt = pad.mapping[padEvt][supports](pad);
 
 				// The event returned a truthy result, which means it fired.
 				if(evtRslt) {
@@ -594,7 +609,13 @@
 					}
 					retEvt.type = padEvt;
 
-					pad.events[padEvt].call(pad, retEvt);
+					if(typeof pad.events[padEvt] === 'function') {
+						pad.events[padEvt].call(pad, retEvt);
+					} else if(pad.state in pad.events[padEvt]) {
+						pad.events[padEvt][pad.state].call(pad, retEvt);
+					} else {
+						pad.events[padEvt]['default'].call(pad, retEvt);
+					}
 				}
 			}
 		};

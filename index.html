@@ -51,12 +51,12 @@
 					);
 				});
 
-				// var player1 = new Pad({
-				// 		name: 'player1'
-				// 	}),
-				// 	player2 = new Pad({
-				// 		deadzone: 0.75
-				// 	});
+				var player1 = new Pad({
+						name: 'player1'
+					}),
+					player2 = new Pad({
+						deadzone: 0.75
+					});
 
 				function digHole(event) {
 					if(event.strength > 0.75) {
@@ -68,9 +68,38 @@
 				function heading(e) {
 					console.log(e.strength, e.heading);
 				}
+				function leftStick() {
+					console.log('thing the left stick normally does');
+				}
+				function leftStickAlt() {
+					console.log('this is another thing the left stick does');
+				}
+				function rightStick() {
+					console.log('thing the RIGHT stick normally does');
+				}
+				function rightStickAlt() {
+					console.log('this is another thing the RIGHT stick does');
+				}
+				function changeState() {
+					if(player1.state === '') {
+						player1.state = 'alt';
+					} else {
+						player1.state = '';
+					}
+				}
 				//player1.on('left.stick.up', digHole);
 				//player1.on('left.stick.move', heading);
 				//player1.on('right.stick.move', heading);
+				player1.on('right.stick.up', {
+					'default': rightStick,
+					'poodle': rightStickAlt
+				});
+				player1.on('left.stick.move', {
+					'default': leftStick,
+					'alt': leftStickAlt
+				});
+				player1.remap('left.stick.move', 'right.stick.up', true);
+				player1.on('button.south', changeState);
 			})();
 
 			(function() {
