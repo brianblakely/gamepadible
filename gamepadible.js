@@ -11,7 +11,7 @@
 		var optionsDefault = {
 				name: 'Pad '+(Pads.length+1),
 				deadzone: 0.20,
-				mapping: 'traditional'
+				type: 'traditional'
 			};
 		for(var option in optionsDefault) {
 			options[option] = options[option] || optionsDefault[option];
@@ -22,10 +22,8 @@
 		self.name = options.name;
 		self.index = Pads.length;
 		self.connected = false;
-		self.mapping = options.mapping;
 
 		self.events = {};
-
 		self.on = function(event, callback) {
 			self.events[event] = callback;
 		};
@@ -35,6 +33,12 @@
 			} else {
 				delete self.events[event];
 			}
+		};
+
+		self.type = options.type;
+		self.mapping = padMapping[options.type];
+		self.remap = function(oldInput, newInput) {
+
 		};
 
 		self.remove = function() {
@@ -576,39 +580,22 @@
 				pad.connected = true;
 			}
 
+			// Test each subscribed event to see if it fired.
 			for(padEvt in pad.events) {
 				evtRslt = padMapping[pad.mapping][padEvt][supports](padInfo, pad.options);
 
+				// The event returned a truthy result, which means it fired.
 				if(evtRslt) {
 					retEvt = new PadInputEvent();
 
+					// Add event properties to event object.
 					for(evtProp in evtRslt) {
 						retEvt[evtProp] = evtRslt[evtProp];
 					}
+					retEvt.type = padEvt;
 
 					pad.events[padEvt].call(pad, retEvt);
 				}
 			}
 		};
 })();
-
-// var player1 = new Pad({
-// 		name: 'player1'
-// 	}),
-// 	player2 = new Pad({
-// 		deadzone: 0.75
-// 	});
-
-function digHole(event) {
-	if(event.strength > 0.75) {
-		//console.log('hole digging fast!', event.strength);
-	} else {
-		//console.log('this hole is making me thirsty!', event.strength);
-	}
-}
-function heading(e) {
-	console.log(e.strength, e.heading);
-}
-//player1.on('left.stick.up', digHole);
-//player1.on('left.stick.move', heading);
-//player1.on('right.stick.move', heading);
