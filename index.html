@@ -32,10 +32,18 @@
 		<canvas></canvas>
 
 		<script src="gamepadible.js"></script>
+		<script src="gamepadible-mappings.js"></script>
 
 		<script>
 			(function() {
 				"use strict";
+
+				window.addEventListener('keydown', function(e) {
+					console.log('keydown', e.keyCode);
+				});
+				window.addEventListener('keyup', function(e) {
+					console.log('keyup', e.keyCode);
+				});
 
 				window.addEventListener("gamepadconnected", function(e) {
 					console.log(
@@ -93,7 +101,7 @@
 				player1.on('right.stick.up', {
 					'default': rightStick,
 					'poodle': rightStickAlt
-				});
+				}, 87);
 				player1.on('left.stick.move', {
 					'default': leftStick,
 					'alt': leftStickAlt
